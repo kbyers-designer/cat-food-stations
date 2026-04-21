@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Who's Actually Eating the Cat Food? | WildTomorrow</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #1a7a6e;
+    --teal-light: #2aaa99;
+    --teal-dark: #0d4a43;
+    --crimson: #c0392b;
+    --crimson-light: #e74c3c;
+    --gold: #d4a017;
+    --cream: #f5f0e8;
+    --dark: #1c1a16;
+    --mid: #3a3630;
+    --muted: #7a7060;
+
+```
+--skunk: #3d3d3d;
+--raccoon: #1a7a6e;
+--fox: #c0392b;
+--other: #8b6914;
+--cat: #d4a017;
+```
+
+}
+
+- { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+background: #1c1a16;
+}
+
+html, body {
+background: #1c1a16;
+color: #f5f0e8;
+font-family: ‘Source Serif 4’, Georgia, serif;
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+/* Grain overlay */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 256 256’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘noise’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23noise)’ opacity=‘0.04’/%3E%3C/svg%3E”);
+pointer-events: none;
+z-index: 1000;
+opacity: 0.4;
+}
+
+.container {
+max-width: 860px;
+margin: 0 auto;
+padding: 3rem 2rem;
+}
+
+/* Header */
+.masthead {
+display: flex;
+align-items: center;
+gap: 0.75rem;
+margin-bottom: 3rem;
+padding-bottom: 1.5rem;
+border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.masthead-logo {
+width: 10px;
+height: 36px;
+background: #2aaa99;
+}
+
+.masthead-text {
+font-family: ‘Oswald’, sans-serif;
+font-size: 0.75rem;
+letter-spacing: 0.2em;
+text-transform: uppercase;
+color: #2aaa99;
+opacity: 0.8;
+}
+
+/* Title block */
+.title-block {
+margin-bottom: 2.5rem;
+}
+
+.eyebrow {
+font-family: ‘Oswald’, sans-serif;
+font-size: 0.7rem;
+letter-spacing: 0.25em;
+text-transform: uppercase;
+color: #e74c3c;
+margin-bottom: 0.75rem;
+}
+
+h1 {
+font-family: ‘Oswald’, sans-serif;
+font-size: clamp(2rem, 5vw, 3.2rem);
+font-weight: 700;
+line-height: 1.05;
+color: #f5f0e8;
+margin-bottom: 1rem;
+max-width: 680px;
+}
+
+h1 em {
+color: #d4a017;
+font-style: normal;
+}
+
+.subtitle {
+font-size: 1.05rem;
+color: rgba(245, 240, 232, 0.65);
+line-height: 1.6;
+max-width: 560px;
+}
+
+/* Main chart area */
+.chart-wrapper {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 3rem;
+margin: 3rem 0;
+align-items: center;
+}
+
+@media (max-width: 600px) {
+.chart-wrapper { grid-template-columns: 1fr; gap: 2rem; }
+}
+
+/* Donut chart */
+.donut-container {
+position: relative;
+width: 100%;
+aspect-ratio: 1;
+max-width: 320px;
+margin: 0 auto;
+}
+
+.donut-svg {
+width: 100%;
+height: 100%;
+transform: rotate(-90deg);
+filter: drop-shadow(0 4px 24px rgba(0,0,0,0.4));
+}
+
+.donut-segment {
+fill: none;
+stroke-width: 28;
+stroke-linecap: butt;
+cursor: pointer;
+transition: stroke-width 0.25s ease, opacity 0.25s ease;
+}
+
+.donut-segment:hover,
+.donut-segment.active {
+stroke-width: 36;
+}
+
+.donut-segment.dimmed {
+opacity: 0.3;
+}
+
+.donut-center {
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+text-align: center;
+pointer-events: none;
+transition: all 0.2s ease;
+}
+
+.donut-center-pct {
+font-family: ‘Oswald’, sans-serif;
+font-size: 3rem;
+font-weight: 700;
+line-height: 1;
+color: #f5f0e8;
+}
+
+.donut-center-label {
+font-size: 0.75rem;
+color: rgba(245,240,232,0.55);
+letter-spacing: 0.05em;
+margin-top: 0.25rem;
+font-style: italic;
+}
+
+/* Legend / interactive list */
+.legend {
+display: flex;
+flex-direction: column;
+gap: 0.5rem;
+}
+
+.legend-item {
+display: flex;
+align-items: center;
+gap: 1rem;
+padding: 0.85rem 1rem;
+border-radius: 4px;
+cursor: pointer;
+border: 1px solid transparent;
+transition: all 0.2s ease;
+position: relative;
+overflow: hidden;
+}
+
+.legend-item::before {
+content: ‘’;
+position: absolute;
+inset: 0;
+opacity: 0;
+transition: opacity 0.2s ease;
+}
+
+.legend-item:hover,
+.legend-item.active {
+border-color: rgba(255,255,255,0.12);
+background: rgba(255,255,255,0.04);
+}
+
+.legend-item.active::before {
+opacity: 1;
+}
+
+.legend-swatch {
+width: 14px;
+height: 14px;
+border-radius: 2px;
+flex-shrink: 0;
+}
+
+.legend-name {
+font-family: ‘Oswald’, sans-serif;
+font-size: 0.95rem;
+font-weight: 600;
+letter-spacing: 0.05em;
+text-transform: uppercase;
+flex: 1;
+color: #f5f0e8;
+}
+
+.legend-pct {
+font-family: ‘Oswald’, sans-serif;
+font-size: 1.5rem;
+font-weight: 700;
+line-height: 1;
+}
+
+.legend-bar-track {
+position: absolute;
+bottom: 0;
+left: 0;
+right: 0;
+height: 2px;
+background: rgba(255,255,255,0.06);
+}
+
+.legend-bar-fill {
+height: 100%;
+transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Callout box */
+.callout {
+background: rgba(192, 57, 43, 0.12);
+border-left: 3px solid var(–crimson-light);
+padding: 1.25rem 1.5rem;
+margin: 2rem 0;
+border-radius: 0 4px 4px 0;
+}
+
+.callout p {
+font-style: italic;
+font-size: 1rem;
+line-height: 1.6;
+color: rgba(245,240,232,0.85);
+}
+
+.callout strong {
+color: #e74c3c;
+font-style: normal;
+}
+
+/* Detail panel */
+.detail-panel {
+background: rgba(255,255,255,0.04);
+border: 1px solid rgba(255,255,255,0.08);
+border-radius: 6px;
+padding: 1.5rem;
+margin: 2rem 0;
+min-height: 120px;
+transition: all 0.25s ease;
+}
+
+.detail-panel-inner {
+opacity: 0;
+transform: translateY(6px);
+transition: all 0.25s ease;
+}
+
+.detail-panel-inner.visible {
+opacity: 1;
+transform: translateY(0);
+}
+
+.detail-animal {
+font-family: ‘Oswald’, sans-serif;
+font-size: 1.4rem;
+font-weight: 700;
+margin-bottom: 0.5rem;
+display: flex;
+align-items: center;
+gap: 0.75rem;
+}
+
+.detail-dot {
+width: 12px;
+height: 12px;
+border-radius: 50%;
+flex-shrink: 0;
+}
+
+.detail-text {
+font-size: 0.95rem;
+line-height: 1.65;
+color: rgba(245,240,232,0.75);
+}
+
+.detail-empty {
+font-style: italic;
+color: rgba(245,240,232,0.35);
+font-size: 0.9rem;
+}
+
+/* Stat row */
+.stat-row {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 1rem;
+margin: 2.5rem 0;
+}
+
+@media (max-width: 500px) {
+.stat-row { grid-template-columns: 1fr; }
+}
+
+.stat-card {
+background: rgba(255,255,255,0.03);
+border: 1px solid rgba(255,255,255,0.07);
+border-radius: 6px;
+padding: 1.25rem;
+text-align: center;
+}
+
+.stat-number {
+font-family: ‘Oswald’, sans-serif;
+font-size: 2.2rem;
+font-weight: 700;
+color: #2aaa99;
+line-height: 1;
+margin-bottom: 0.4rem;
+}
+
+.stat-number.red { color: #e74c3c; }
+.stat-number.gold { color: #d4a017; }
+
+.stat-label {
+font-size: 0.78rem;
+color: rgba(245,240,232,0.5);
+line-height: 1.4;
+text-transform: uppercase;
+letter-spacing: 0.08em;
+}
+
+/* Footer */
+.source-note {
+border-top: 1px solid rgba(255,255,255,0.08);
+padding-top: 1.5rem;
+margin-top: 2.5rem;
+font-size: 0.75rem;
+color: rgba(245,240,232,0.35);
+line-height: 1.6;
+}
+
+.wildtomorrow-tag {
+display: inline-block;
+font-family: ‘Oswald’, sans-serif;
+font-size: 0.7rem;
+letter-spacing: 0.15em;
+text-transform: uppercase;
+color: #2aaa99;
+margin-bottom: 0.5rem;
+}
+
+/* Hover hint */
+.hint {
+font-size: 0.78rem;
+color: rgba(245,240,232,0.3);
+font-style: italic;
+margin-bottom: 1rem;
+text-align: center;
+}
+
+/* Cat punchline */
+.cat-punchline {
+background: rgba(212, 160, 23, 0.08);
+border: 1px dashed rgba(212, 160, 23, 0.3);
+border-radius: 6px;
+padding: 1rem 1.25rem;
+margin: 1.5rem 0;
+font-size: 0.9rem;
+color: rgba(245,240,232,0.7);
+line-height: 1.6;
+font-style: italic;
+}
+
+.cat-punchline strong {
+color: #d4a017;
+font-style: normal;
+}
+</style>
+
+</head>
+<body>
+<div class="container">
+
+  <div class="masthead">
+    <div class="masthead-logo"></div>
+    <span class="masthead-text">WildTomorrow &nbsp;|&nbsp; Data Visualization</span>
+  </div>
+
+  <div class="title-block">
+    <div class="eyebrow">Feral Cat Feeding Stations</div>
+    <h1>Who's Actually Eating<br>the <em>Cat Food?</em></h1>
+    <p class="subtitle">You set out food for feral cats. Here's what the trail camera actually found at the bowl.</p>
+  </div>
+
+  <p class="hint">← Click or tap a segment or animal to explore →</p>
+
+  <div class="chart-wrapper">
+    <div class="donut-container">
+      <svg class="donut-svg" viewBox="0 0 200 200" id="donut">
+        <circle class="donut-bg" cx="100" cy="100" r="70" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="28"/>
+        <!-- segments filled by JS -->
+      </svg>
+      <div class="donut-center" id="donut-center">
+        <div class="donut-center-pct" id="center-pct">100%</div>
+        <div class="donut-center-label" id="center-label">of visits</div>
+      </div>
+    </div>
+
+```
+<div class="legend" id="legend"></div>
+```
+
+  </div>
+
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-panel-inner" id="detail-inner">
+      <p class="detail-empty">Select an animal above to learn more.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p>Researchers monitored a feeding station maintained for a feral cat colony. Night after night, wildlife dominated the bowl. <strong>The cats the station was designed for? They often arrived to find it empty.</strong></p>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-number red">96%</div>
+      <div class="stat-label">of feeding station visits by wildlife, not cats</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">4%</div>
+      <div class="stat-label">of visits by the cats the station was meant for</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number gold">100x</div>
+      <div class="stat-label">denser than native predators when humans subsidize cats</div>
+    </div>
+  </div>
+
+  <div class="cat-punchline">
+    <strong>The bottom line:</strong> Cat colonies form around food sources and grow to the limits of the food supply. So do raccoon populations. So do skunk populations. If you've been putting food out for months and now have a raccoon convention on your property, the food is not incidental to that situation. The food <em>is</em> the situation.
+  </div>
+
+  <div class="source-note">
+    <span class="wildtomorrow-tag">WildTomorrow</span><br>
+    Data source: Urban Wildlife Research Project, "Feeding the Feral: A Study on Feral Cat's Environmental Impact." Smithsonian Conservation Biology Institute / USFWS (Loss et al. 2013). Population density data: ecological impact literature reviewed by the Wildlife Society. Visualization by Katie Byers | WildTomorrow.
+  </div>
+
+</div>
+
+<script>
+const data = [
+  {
+    id: 'skunk',
+    label: 'Skunks',
+    pct: 74,
+    color: '#5a5a5a',
+    emoji: '🦨',
+    detail: 'Skunks dominated the feeding station, accounting for nearly three-quarters of all visits. Up to five skunks at a time were observed fighting over the bowl. The most dominant individual had, per field notes, "a stomach the size of a beach ball." They arrived early and stayed late.'
+  },
+  {
+    id: 'raccoon',
+    label: 'Raccoons',
+    pct: 15,
+    color: '#1a7a6e',
+    emoji: '🦝',
+    detail: 'Raccoons were second in line, arriving after skunks had their fill. Some individuals were also visibly overweight from the supplemental food. Raccoons at artificial feeding stations become conditioned to human food sources, which worsens human-wildlife conflict downstream.'
+  },
+  {
+    id: 'fox',
+    label: 'Gray Foxes',
+    pct: 7,
+    color: '#c0392b',
+    emoji: '🦊',
+    detail: 'Gray foxes made up 7% of feeder visits and were, notably, the most polite guests. They arrived early, shared the bowl willingly, and immediately gave it up if a skunk or raccoon entered the area. Even native predators know when they\'re outranked.'
+  },
+  {
+    id: 'other',
+    label: 'Other Wildlife',
+    pct: 4,
+    color: '#8b6914',
+    emoji: '🐦',
+    detail: 'Birds including California Towhees and Oak Titmice were observed taking cat food directly back to nests to feed their young. Researchers found cat food kibble in the scat of raccoons and gray foxes. The feeding station had become a de facto community wildlife feeder.'
+  },
+  {
+    id: 'cat',
+    label: 'Feral Cats',
+    pct: 4,
+    color: '#d4a017',
+    emoji: '🐱',
+    detail: 'Four percent. The animals the station was designed to feed accounted for 4% of all visits — equal to "other wildlife." They frequently arrived to find an empty bowl after the skunks, raccoons, and foxes had finished. The cats were, in the most literal sense, last in line at their own buffet.'
+  }
+];
+
+const CIRC = 2 * Math.PI * 70;
+let activeId = null;
+
+function buildDonut() {
+  const svg = document.getElementById('donut');
+  let offset = 0;
+
+  data.forEach(d => {
+    const dash = (d.pct / 100) * CIRC;
+    const gap = CIRC - dash;
+    const seg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    seg.setAttribute('cx', '100');
+    seg.setAttribute('cy', '100');
+    seg.setAttribute('r', '70');
+    seg.setAttribute('class', 'donut-segment');
+    seg.setAttribute('stroke', d.color);
+    seg.setAttribute('stroke-dasharray', `${dash} ${gap}`);
+    seg.setAttribute('stroke-dashoffset', -offset * CIRC / 100);
+    seg.setAttribute('data-id', d.id);
+    seg.addEventListener('click', () => toggle(d.id));
+    seg.addEventListener('mouseenter', () => hover(d.id));
+    seg.addEventListener('mouseleave', () => hoverEnd());
+    svg.appendChild(seg);
+    offset += d.pct;
+  });
+}
+
+function buildLegend() {
+  const legend = document.getElementById('legend');
+  data.forEach(d => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.dataset.id = d.id;
+    item.innerHTML = `
+      <div class="legend-swatch" style="background:${d.color}"></div>
+      <span class="legend-name">${d.emoji} ${d.label}</span>
+      <span class="legend-pct" style="color:${d.color}">${d.pct}%</span>
+      <div class="legend-bar-track">
+        <div class="legend-bar-fill" style="background:${d.color}; width:${d.pct}%"></div>
+      </div>
+    `;
+    item.addEventListener('click', () => toggle(d.id));
+    item.addEventListener('mouseenter', () => hover(d.id));
+    item.addEventListener('mouseleave', () => hoverEnd());
+    legend.appendChild(item);
+  });
+}
+
+function hover(id) {
+  if (activeId) return;
+  updateCenter(id);
+  highlightSegments(id);
+}
+
+function hoverEnd() {
+  if (activeId) return;
+  resetCenter();
+  resetSegments();
+}
+
+function toggle(id) {
+  if (activeId === id) {
+    activeId = null;
+    resetCenter();
+    resetSegments();
+    hideDetail();
+  } else {
+    activeId = id;
+    updateCenter(id);
+    highlightSegments(id);
+    showDetail(id);
+  }
+}
+
+function updateCenter(id) {
+  const d = data.find(x => x.id === id);
+  document.getElementById('center-pct').textContent = d.pct + '%';
+  document.getElementById('center-pct').style.color = d.color;
+  document.getElementById('center-label').textContent = d.label;
+}
+
+function resetCenter() {
+  document.getElementById('center-pct').textContent = '100%';
+  document.getElementById('center-pct').style.color = '';
+  document.getElementById('center-label').textContent = 'of visits';
+}
+
+function highlightSegments(id) {
+  document.querySelectorAll('.donut-segment').forEach(s => {
+    s.classList.toggle('active', s.dataset.id === id);
+    s.classList.toggle('dimmed', s.dataset.id !== id);
+  });
+  document.querySelectorAll('.legend-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.id === id);
+  });
+}
+
+function resetSegments() {
+  document.querySelectorAll('.donut-segment').forEach(s => {
+    s.classList.remove('active', 'dimmed');
+  });
+  document.querySelectorAll('.legend-item').forEach(item => {
+    item.classList.remove('active');
+  });
+}
+
+function showDetail(id) {
+  const d = data.find(x => x.id === id);
+  const inner = document.getElementById('detail-inner');
+  inner.classList.remove('visible');
+  setTimeout(() => {
+    inner.innerHTML = `
+      <div class="detail-animal">
+        <div class="detail-dot" style="background:${d.color}"></div>
+        ${d.emoji} ${d.label} — ${d.pct}% of visits
+      </div>
+      <p class="detail-text">${d.detail}</p>
+    `;
+    inner.classList.add('visible');
+  }, 150);
+}
+
+function hideDetail() {
+  const inner = document.getElementById('detail-inner');
+  inner.classList.remove('visible');
+  setTimeout(() => {
+    inner.innerHTML = '<p class="detail-empty">Select an animal above to learn more.</p>';
+    inner.classList.add('visible');
+  }, 200);
+}
+
+buildDonut();
+buildLegend();
+
+// Animate in
+setTimeout(() => {
+  const inner = document.getElementById('detail-inner');
+  inner.classList.add('visible');
+}, 300);
+</script>
+
+</body>
+</html>
